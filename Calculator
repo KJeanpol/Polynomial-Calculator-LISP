@@ -1,35 +1,45 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname Calculator) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
-
-;----------------- GETTERS FROM COMMON LIST ELEMENTS----------------------
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname |#Calculator#1#|) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;----------------------  GETTERS FROM COMMON LIST ELEMENTS ---------------------
 
 (define (getCoef mon) (car mon))
 (define (getX mon) (first(cdr mon)))
 (define (getY mon) (second(cdr mon)))
 
-;------------------ USEFUL FUNCTIONS OF MONOMIALS -----------------------
+;-----------------------  USEFUL FUNCTIONS OF MONOMIALS -----------------------
 
 (define (negative mon) (* mon -1))
 (define (additionCoef mon mon2) (+ (getCoef mon) (getCoef mon2)))
 (define (getNewMonomial coef x y) (list coef x y))
 
-(define (areMonomialEqual mon mon2) (cond[ (and (= (getX mon) (getX mon2)) (= (getY mon)
-                            (getY mon2))) (format "T")] [else (format "F")]))
+(define (areMonomialEqual mon mon2) (equal? (getX mon) (getX mon2)))
 
-(define (additionMonomial pol pol2)(cond [(= (string->int (areMonomialEqual pol pol2)) (string->int "T")) (getNewMonomial (additionCoef pol pol2) (getX pol) (getY pol))]
-                                           [else (format "no son iguales")]))
+(define (additionMonomial pol pol2)(cond [(areMonomialEqual pol pol2) (getNewMonomial (additionCoef pol pol2)
+                                           (getX pol) (getY pol))] [else (format "no son iguales")]))
 
-;------------------ USEFUL FUNCTIONS OF POLYNOMIALS -----------------------
+;-----------------------  USEFUL FUNCTIONS OF POLYNOMIALS -----------------------
 (define (concatenate pol pol2)(append pol pol2))
-
-(define (test p) (map getY (p)))
-
 (define (recursividad num) (cond [(= num 0) (1) ] [else (recursividad (* num (- num 1)))]))
 
-;------------------        ITERATE POLYNOMIALS     -----------------------
-(define (iteratePol pol) (cond [ (null? pol) (format "es vacio")] [else (iteratePolAux pol)]))
-(define (iteratePolAux pol )(cond [(null? (cdr pol)) (car pol)] [else (iteratePolAux (cdr pol))]))
 
+;------------------  ADDS ALL MONOMIALS TO A SINGLE LIST (POLYNOMIAL) -----------------------
+(define (iteratePolAux pol) (cond [ (null? pol) (format "es vacio")] [else (iteratePol pol '())]))
+(define (iteratePol pol pol2 )(cond [(null? (cdr pol)) (concatenate pol2 (car pol))]
+                                       [else (iteratePol (cdr pol) (concatenate pol2 (car pol)))]))
+
+;------------------  VERIFICATION SIMILARITIES WITHIN THE POLYNOMIAL -----------------------
+(define (getNext pol) (second pol))
+(define (test pol) (map (lambda (x)(additionMonomial x (car pol))) pol))
+(define (vacio pol pol2) (cond[(null? (cdr pol)) (pol2)] [else (cond [(areMonomialEqual (car pol) (getNext pol)) (vacio pol (additionMonomial (car pol) (getNext pol)))]
+                                                                     [else (vacio (remove (getNext pol) pol)) pol2)])]))
+
+
+
+;;(define (iteratePolAux pol) (cond [ (null? pol) (format "es vacio")] [else (iteratePol pol '())]))
+;;(define (iteratePol pol pol2 ) (cond [(null? (cdr pol)) (concatenate pol2 (car pol))]
+  ;;                                   [else (iteratePol (cdr pol) (vacio pol '())]
+      ;;                                           [else (iteratePol pol pol2)]) ]))
+ 
 
 ;(additionMonomial '(2 3 4) '(4 3 4))
