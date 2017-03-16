@@ -1,22 +1,19 @@
-;; The first three lines of this file were inserted by DrRacket. They record metadata
-;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname |#Calculator#1#|) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+#lang racket
 ;----------------------  GETTERS FROM COMMON LIST ELEMENTS ---------------------
-
 (define (getCoef mon) (car mon))
-(define (getX mon) (first(cdr mon)))
+(define (getX mon) (cond[(null? mon) '(mon)] [else (first(cdr mon))]))
 (define (getY mon) (second(cdr mon)))
 
 ;-----------------------  USEFUL FUNCTIONS OF MONOMIALS -----------------------
 
-(define (negative mon) (* mon -1))
-(define (additionCoef mon mon2) (+ (getCoef mon) (getCoef mon2)))
+(define (operadorCoef mon mon2 operador) (operador (getCoef mon) (getCoef mon2)))
+
 (define (getNewMonomial coef x y) (list coef x y))
 
 (define (areMonomialEqual mon mon2) (equal? (getX mon) (getX mon2)))
 
-(define (additionMonomial pol pol2)(cond [(areMonomialEqual pol pol2) (getNewMonomial (additionCoef pol pol2)
-                                           (getX pol) (getY pol))] [else (format "no son iguales")]))
+(define (operadorMonomial pol operador pol2 )(cond [(areMonomialEqual pol pol2) (getNewMonomial (operadorCoef pol pol2 operador)
+                                           (getX pol) (getY pol))] [else false]))
 
 ;-----------------------  USEFUL FUNCTIONS OF POLYNOMIALS -----------------------
 (define (concatenate pol pol2)(append pol pol2))
@@ -24,22 +21,28 @@
 
 
 ;------------------  ADDS ALL MONOMIALS TO A SINGLE LIST (POLYNOMIAL) -----------------------
-(define (iteratePolAux pol) (cond [ (null? pol) (format "es vacio")] [else (iteratePol pol '())]))
 (define (iteratePol pol pol2 )(cond [(null? (cdr pol)) (concatenate pol2 (car pol))]
                                        [else (iteratePol (cdr pol) (concatenate pol2 (car pol)))]))
 
 ;------------------  VERIFICATION SIMILARITIES WITHIN THE POLYNOMIAL -----------------------
 (define (getNext pol) (second pol))
-(define (test pol) (map (lambda (x)(additionMonomial x (car pol))) pol))
-(define (vacio pol pol2) (cond[(null? (cdr pol)) (pol2)] [else (cond [(areMonomialEqual (car pol) (getNext pol)) (vacio pol (additionMonomial (car pol) (getNext pol)))]
-                                                                     [else (vacio (remove (getNext pol) pol)) pol2)])]))
+(define (test pol operador) (map (lambda (x)(operadorMonomial (car pol) x operador)) (cdr pol)))
 
 
 
-;;(define (iteratePolAux pol) (cond [ (null? pol) (format "es vacio")] [else (iteratePol pol '())]))
-;;(define (iteratePol pol pol2 ) (cond [(null? (cdr pol)) (concatenate pol2 (car pol))]
-  ;;                                   [else (iteratePol (cdr pol) (vacio pol '())]
-      ;;                                           [else (iteratePol pol pol2)]) ]))
- 
+;Intento
 
-;(additionMonomial '(2 3 4) '(4 3 4))
+(define (sumPoli pol polBandera polFinal)
+  (cond
+    ((null? (cdr polBandera)) (polFinal))
+       (else (cond
+               [(areMonomialEqual pol (car polBadera)) (sumPoli pol (remove polFinal polBandera) (operadorMonomial pol + polFinal))]
+               [else (sumPoli pol (cdr polBandera) (operadorMonomial pol + (car polBadera)))]))))
+
+
+(sumPoli '(2 3 4) '((4 3 4) (1 1 1) (3 3 4)) '((4 3 4) (1 1 1) (3 3 4)))
+(test '((2 3 4) (4 3 4) (1 1 1) (3 3 4)) +)
+(test '((2 3 4) (4 3 4)) -)
+
+
+
