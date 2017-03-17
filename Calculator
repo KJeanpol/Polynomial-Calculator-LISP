@@ -1,7 +1,7 @@
 #lang racket
 ;----------------------  GETTERS FROM COMMON LIST ELEMENTS ---------------------
 (define (getCoef mon) (car mon))
-(define (getX mon) (cond[(null? mon) '(mon)] [else (first(cdr mon))]))
+(define (getX mon) (cond [(null? mon) false] [else (first(cdr mon))]))
 (define (getY mon) (second(cdr mon)))
 
 ;-----------------------  USEFUL FUNCTIONS OF MONOMIALS -----------------------
@@ -10,19 +10,13 @@
 
 (define (getNewMonomial coef x y) (list coef x y))
 
-(define (areMonomialEqual mon mon2) (equal? (getX mon) (getX mon2)))
+(define (areMonomialEqual mon mon2) (equal? (cdr mon) (cdr mon2)))
 
-(define (operadorMonomial pol operador pol2 )(cond [(areMonomialEqual pol pol2) (getNewMonomial (operadorCoef pol pol2 operador)
-                                           (getX pol) (getY pol))] [else false]))
-
-;-----------------------  USEFUL FUNCTIONS OF POLYNOMIALS -----------------------
-(define (concatenate pol pol2)(append pol pol2))
-(define (recursividad num) (cond [(= num 0) (1) ] [else (recursividad (* num (- num 1)))]))
-
-
-;------------------  ADDS ALL MONOMIALS TO A SINGLE LIST (POLYNOMIAL) -----------------------
-(define (iteratePol pol pol2 )(cond [(null? (cdr pol)) (concatenate pol2 (car pol))]
-                                       [else (iteratePol (cdr pol) (concatenate pol2 (car pol)))]))
+(define (operadorMonomial monToEval operador pol2 )(cond
+                                                     [(areMonomialEqual monToEval pol2)
+                                                          (getNewMonomial (operadorCoef monToEval pol2 operador)
+                                           (getX monToEval) (getY monToEval))]
+                                                     [else false]))
 
 ;------------------  VERIFICATION SIMILARITIES WITHIN THE POLYNOMIAL -----------------------
 (define (getNext pol) (second pol))
@@ -32,17 +26,24 @@
 
 ;Intento
 
-(define (sumPoli pol polBandera polFinal)
+(define (totalMon operador mon polBandera)
   (cond
-    ((null? (cdr polBandera)) (polFinal))
+    ((null? (cdr polBandera)) mon)
        (else (cond
-               [(areMonomialEqual pol (car polBadera)) (sumPoli pol (remove polFinal polBandera) (operadorMonomial pol + polFinal))]
-               [else (sumPoli pol (cdr polBandera) (operadorMonomial pol + (car polBadera)))]))))
+               [(areMonomialEqual mon (car polBandera))
+                (totalMon operador (operadorMonomial mon operador (car polBandera)) (remove (car polBandera) polBandera))]
+               [else (totalMon operador mon (cdr polBandera))]))))
+
+(define (prueba pol) (map (lambda (x)(* (getCoef x)-1)) pol))
+;(define (test pol operador) (map (lambda (x)(operadorMonomial (car pol) x operador)) (cdr pol)))
 
 
-(sumPoli '(2 3 4) '((4 3 4) (1 1 1) (3 3 4)) '((4 3 4) (1 1 1) (3 3 4)))
-(test '((2 3 4) (4 3 4) (1 1 1) (3 3 4)) +)
-(test '((2 3 4) (4 3 4)) -)
+;(totalMon + '(1 2 3)'((2 3 4) (4 3 4) (1 1 1) (3 3 4)))
+;(sumPoli '(2 3 4) '((4 3 4) (1 1 1) (3 3 4)) '((4 3 4) (1 1 1) (3 3 4)))
+
+;(test '((2 3 4) (4 3 4)) -)
+
+;(operadorMonomial '(1 2 3) + '(1 2 3))
 
 
 
