@@ -20,30 +20,72 @@
 
 ;------------------  VERIFICATION SIMILARITIES WITHIN THE POLYNOMIAL -----------------------
 (define (getNext pol) (second pol))
+
 (define (test pol operador) (map (lambda (x)(operadorMonomial (car pol) x operador)) (cdr pol)))
 
+(define (concatenatePol pol operador pol2) (cond
+                                             [(equal? operador -)(append pol (negativePol pol2))][else (append pol pol2)]))
+(define (negativePol pol) (map (lambda (x) (getNewMonomial (* (getCoef x)-1) (getX x) (getY x))) pol))
+
+;-------------------------------------------------------
+;(define (totalMon operador mon polBandera polFinal)
+ ; (cond
+  ;  ((null? (cdr polBandera)) '(polFinal mon))
+   ;    (else (cond
+    ;          [(areMonomialEqual mon (car polBandera))
+     ;           (totalMon operador (operadorMonomial mon operador (car polBandera)) (cdr polBandera) polFinal)]
+      ;         [else (totalMon operador mon (cdr polBandera) (append polFinal (car polBandera)))]))))
+
+;---------------------------------------------------------
+(define (retorno operador mon polBandera polFinal)
+  (cond
+    ((null? (cdr polBandera)) (mon polFinal))
+       (else (cond
+               [(areMonomialEqual mon ((car polBandera)))
+                (totalMon operador (operadorMonomial mon operador (car polBandera)) (cdr polBandera) polBandera)]
+               [else (totalMon operador mon (cdr polBandera) (append polFinal (car polBandera)))]))))
 
 
-;Intento
+
+;(define (operadorPolynomial pol operador pol2 respuesta)
+ ; (prueba (concatenatePol pol operador pol2) '() operador))
+
+(define (prueba polActualizado polRespuestaFinal operador)
+  (cond[
+        (null? (cdr polActualizado)) (polRespuestaFinal)]
+       [else prueba (second (totalMon operador (car polActualizado) polActualizado '()))
+             (append polRespuestaFinal (car (totalMon operador (car polActualizado) polActualizado '()))) ]))
+
+
+
+(define (operadorPolynomial pol operador pol2)
+  (totalMon + (car(concatenatePol pol operador pol2)) (cdr(concatenatePol pol operador pol2)) '()))
+
 
 (define (totalMon operador mon polBandera)
   (cond
     ((null? (cdr polBandera)) mon)
        (else (cond
                [(areMonomialEqual mon (car polBandera))
-                (totalMon operador (operadorMonomial mon operador (car polBandera)) (remove (car polBandera) polBandera))]
+               (totalMon operador (operadorMonomial mon operador (car polBandera)) (cdr polBandera))]
                [else (totalMon operador mon (cdr polBandera))]))))
 
-(define (prueba pol) (map (lambda (x)(* (getCoef x)-1)) pol))
-;(define (test pol operador) (map (lambda (x)(operadorMonomial (car pol) x operador)) (cdr pol)))
 
 
 ;(totalMon + '(1 2 3)'((2 3 4) (4 3 4) (1 1 1) (3 3 4)))
+
 ;(sumPoli '(2 3 4) '((4 3 4) (1 1 1) (3 3 4)) '((4 3 4) (1 1 1) (3 3 4)))
 
-;(test '((2 3 4) (4 3 4)) -)
-
 ;(operadorMonomial '(1 2 3) + '(1 2 3))
+;(operadorPolynomial '((1 2 3) (2 2 3) (7 7 7)) + '((1 2 3) (2 2 3) (7 7 7)))
+
+;(define (totalMon operador mon polBandera)
+ ; (cond
+  ;  ((null? (cdr polBandera)) mon)
+   ;    (else (cond
+    ;           [(areMonomialEqual mon (car polBandera))
+               ; (totalMon operador (operadorMonomial mon operador (car polBandera)) (remove (car polBandera) polBandera))]
+              ; [else (totalMon operador mon (cdr polBandera))]))))
 
 
 
