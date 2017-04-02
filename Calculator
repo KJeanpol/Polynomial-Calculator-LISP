@@ -12,13 +12,13 @@
 
 (define (areMonomialEqual mon mon2) (equal? (cdr mon) (cdr mon2)))
 
-(define
-  (operadorMonomial monToEval operador pol2 )
+(define(operadorMonomial monToEval operador pol2 )
   (cond
     [(areMonomialEqual monToEval pol2)
      (getNewMonomial (operadorCoef monToEval pol2 operador) (getX monToEval)(getY monToEval))
      ]
      [else false]))
+
 (define (multiplyMon mon mon2)
   (getNewMonomial (* (getCoef mon) (getCoef mon2)) (+ (getX mon) (getX mon2)) (+ (getY mon) (getY mon2))))
 
@@ -36,9 +36,12 @@
 (define (getSecondtEvaluatedValue pol operador pol2) (car (cdr(getEvaluatedValues (getFirstConcatenated pol operador pol2) (getSecondConcatenated pol operador pol2) '()))))
 
 
-;------------------  VERIFICATION SIMILARITIES WITHIN THE POLYNOMIAL -----------------------
+;------------------  ARITHMETICS FUNCTIONS WITHIN THE POLYNOMIAL ! -----------------------
 
 (define (negativePol pol) (map (lambda (x) (getNewMonomial (* (getCoef x) -1) (getX x) (getY x))) pol))
+
+(define (OperadorPolynomial pol operador pol2)(operadorPolynomial (inputAux pol) operador (inputAux pol2)))
+
 (define (operadorPolynomial pol operador pol2)
   (cond
     [(equal? operador *)
@@ -48,6 +51,7 @@
   )
   )
 
+;-----------------------------FUNCTIONS TO ADDITION--------------------------------------
 (define (polynomialAddition mon pol answer)
   (cond
     [(null? pol) (car (list (append answer (list mon))))]
@@ -66,11 +70,13 @@
 
 (define (getEvaluatedValues mon polFlag answer)
   (cond
-    ((empty? polFlag) (append  (list mon) (list answer)))
+    ((empty? polFlag) (append(list mon) (list answer)))
        (else (cond
                [(areMonomialEqual mon (car polFlag))
                (getEvaluatedValues (operadorMonomial mon + (car polFlag)) (cdr polFlag) answer)]
                [else (getEvaluatedValues mon (cdr polFlag) (append answer (list (car polFlag))))]))))
+
+;-----------------------------FUNCTIONS TO MULTIPLY--------------------------------------
 
 (define (multiplyPol pol pol2 polFinal)
   (cond
@@ -79,6 +85,27 @@
     ))
 
 (define (multiplyPolAux mon pol2) (map (lambda (x)  (multiplyMon mon x)) pol2))
+
+;-----------------------------FUNCTIONS TO RAISED BY AN EXPONENT--------------------------------------
+
+(define (getExp num exp) (cond[(equal? num 0) 1]
+                              [else (expt num exp)]))
+
+;-----------------------------FUNCTIONS TO EVAL--------------------------------------
+(define (evalAuxTwo pol x y)
+  (* (first pol) (* (getExp x (second pol)) (getExp y (third pol)))))
+
+(define (evalAux pol x y) (map (lambda (w)  (evalAuxTwo w x y)) pol))
+
+(define (eval pol x y)(iterateList (evalAux pol x y) 0))
+
+(define (iterateList mySum total)
+  (cond
+    [(empty? mySum)
+     total]
+    [else (iterateList (cdr mySum) (+ total (car mySum)))]))
+
+(define (Eval pol x y)(eval (inputAux pol) x y))
 
 ;-----------------------  INPUT FUNCTIONS  -----------------------
 ;pol must be a string
@@ -94,10 +121,18 @@
        )
   )
 
+(define (makeNegative mon)
+  (cond
+    [(equal? (car mon) #f)
+     (getNewMonomial (* -1 (second mon)) (third mon) (fourth mon))]
+    [else mon]))
+
+(define (inputAux input) (map (lambda(x) (makeNegative x)) (polinomio-input? input)))
+
 ;-----------------------  TEST VALUES GIVEN BY THE TEACHER  -----------------------
 
-(operadorPolynomial '((1 2 0)(-2 1 1)(1 0 2)) + '((1 2 1)(1 2 0)(2 1 1) (-1 0 2)))
-(operadorPolynomial '((1 2 3)(3 4 2)(5 2 2)) - '((1 5 3)(3 1 2)(2 2 2)))
-(operadorPolynomial '((2 0 1) (5 1 0)) * '((5 0 1) (2 1 0)))
-(polinomio-input? "1 2 0 | -2 1 1 | 1 0 2")
+(OperadorPolynomial "1 2 0 | -2 1 1 | 1 0 2" + "1 2 1 | 1 2 0 | 2 1 1 | -1 0 2" )
+(OperadorPolynomial "1 2 0 | -2 1 1 | 1 0 2" - "1 2 1 | 1 2 0 | 2 1 1 | -1 0 2")
+(OperadorPolynomial "2 1 1 | -2 0 0" * "1 2 0 | -2 1 1 | 1 0 0")
+(Eval "1 2 0 | -2 1 1 | 1 0 0" 3 5)
 

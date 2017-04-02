@@ -1,4 +1,104 @@
-;; The first three lines of this file were inserted by DrRacket. They record metadata
-;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname Calculator) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
-(defun addition (x y)(+x y)) 
+#lang racket
+
+;----------------------  GETTERS FROM COMMON MONOMIAL ELEMENTS ---------------------
+(define (getCoef mon) (car mon))
+(define (getX mon) (cond [(null? mon) false] [else (first(cdr mon))]))
+(define (getY mon) (second(cdr mon)))
+(define (getNewMonomial coef x y) (list coef x y))
+
+;-----------------------  USEFUL MONOMIAL FUNCTIONS -----------------------
+
+(define (operadorCoef mon mon2 operador) (operador (getCoef mon) (getCoef mon2)))
+
+(define (areMonomialEqual mon mon2) (equal? (cdr mon) (cdr mon2)))
+
+(define
+  (operadorMonomial monToEval operador pol2 )
+  (cond
+    [(areMonomialEqual monToEval pol2)
+     (getNewMonomial (operadorCoef monToEval pol2 operador) (getX monToEval)(getY monToEval))
+     ]
+     [else false]))
+(define (multiplyMon mon mon2)
+  (getNewMonomial (* (getCoef mon) (getCoef mon2)) (+ (getX mon) (getX mon2)) (+ (getY mon) (getY mon2))))
+
+;----------------------  GETTERS FROM COMMON POLYNOMIAL ELEMENTS ---------------------
+(define (concatenatePol pol operador pol2)
+  (cond
+    [(equal? operador -)(append pol (negativePol pol2))]
+    [else (append pol pol2)]
+    )
+  )
+
+(define (getFirstConcatenated pol operador pol2) (car(concatenatePol pol operador pol2)))
+(define (getSecondConcatenated pol operador pol2) (cdr(concatenatePol pol operador pol2)))
+(define (getFirstEvaluatedValue pol operador pol2) (car(getEvaluatedValues (getFirstConcatenated pol operador pol2) (getSecondConcatenated pol operador pol2) '())))
+(define (getSecondtEvaluatedValue pol operador pol2) (car (cdr(getEvaluatedValues (getFirstConcatenated pol operador pol2) (getSecondConcatenated pol operador pol2) '()))))
+
+
+;------------------  VERIFICATION SIMILARITIES WITHIN THE POLYNOMIAL -----------------------
+
+(define (negativePol pol) (map (lambda (x) (getNewMonomial (* (getCoef x) -1) (getX x) (getY x))) pol))
+(define (operadorPolynomial pol operador pol2)
+  (cond
+    [(equal? operador *)
+     (multiplyPol pol pol2 '())
+     ]
+    [else (polynomialAddition (getFirstEvaluatedValue pol operador pol2) (getSecondtEvaluatedValue pol operador pol2) '())]
+  )
+  )
+
+(define (polynomialAddition mon pol answer)
+  (cond
+    [(null? pol) (car (list (append answer (list mon))))]
+    [else
+     (polynomialAddition
+      (car(getEvaluatedValues (car pol) (cdr pol) '()))
+      (first(cdr (getEvaluatedValues (car pol) (cdr pol) '())))
+      (cond
+        [(equal? (getCoef mon) 0) answer]
+        [else (append answer (list mon))]
+        )
+      )
+     ]
+    )
+  )
+
+(define (getEvaluatedValues mon polFlag answer)
+  (cond
+    ((empty? polFlag) (append  (list mon) (list answer)))
+       (else (cond
+               [(areMonomialEqual mon (car polFlag))
+               (getEvaluatedValues (operadorMonomial mon + (car polFlag)) (cdr polFlag) answer)]
+               [else (getEvaluatedValues mon (cdr polFlag) (append answer (list (car polFlag))))]))))
+
+(define (multiplyPol pol pol2 polFinal)
+  (cond
+    [(null? pol) (polynomialAddition (car polFinal) (cdr polFinal) '())]
+    [else (multiplyPol (cdr pol) pol2 (append polFinal (multiplyPolAux (car pol) pol2)))]
+    ))
+
+(define (multiplyPolAux mon pol2) (map (lambda (x)  (multiplyMon mon x)) pol2))
+
+;-----------------------  INPUT FUNCTIONS  -----------------------
+;pol must be a string
+(define (polinomio-input? pol)
+  (cond[(regexp-match-exact? #rx"-?[0-9] [0-9] [0-9]( \\| -?[0-9] [0-9] [0-9])*" pol) (map (lambda (x)
+         (map (lambda(y) (string->number (string y))) (string->list x))
+         )
+   (string-split
+    (string-replace pol " " "") "|"
+    )
+   )]
+       [else (write "ERROR: Invalid input format")]
+       )
+  )
+
+(define (inputAux input) (map (lambda(x) (remove false x)) (polinomio-input? input)))
+;-----------------------  TEST VALUES GIVEN BY THE TEACHER  -----------------------
+
+(operadorPolynomial '((1 2 0)(-2 1 1)(1 0 2)) + '((1 2 1)(1 2 0)(2 1 1) (-1 0 2)))
+(operadorPolynomial '((1 2 3)(3 4 2)(5 2 2)) - '((1 5 3)(3 1 2)(2 2 2)))
+(operadorPolynomial '((2 0 1) (5 1 0)) * '((5 0 1) (2 1 0)))
+(polinomio-input? "1 2 0 | -2 1 1 | 1 0 2")
+(inputAux "1 2 0 | -2 1 1 | 1 0 2")
