@@ -40,7 +40,8 @@
 
 (define (negativePol pol) (map (lambda (x) (getNewMonomial (* (getCoef x) -1) (getX x) (getY x))) pol))
 
-(define (OperadorPolynomial pol operador pol2)(operadorPolynomial (inputAux pol) operador (inputAux pol2)))
+(define (OperadorPolynomial pol operador pol2) (myOutput (Operador pol operador pol2) ""))
+(define (Operador pol operador pol2)(operadorPolynomial (inputAux pol) operador (inputAux pol2)))
 
 (define (operadorPolynomial pol operador pol2)
   (cond
@@ -110,7 +111,8 @@
 ;-----------------------  INPUT FUNCTIONS  -----------------------
 ;pol must be a string
 (define (polinomio-input? pol)
-  (cond[(regexp-match-exact? #rx"-?[0-9] [0-9] [0-9]( \\| -?[0-9] [0-9] [0-9])*" pol) (map (lambda (x)
+  (cond[(regexp-match-exact? #rx"-?[0-9] [0-9] [0-9]( \\| -?[0-9] [0-9] [0-9])*" pol)
+        (map (lambda (x)
          (map (lambda(y) (string->number (string y))) (string->list x))
          )
    (string-split
@@ -121,6 +123,8 @@
        )
   )
 
+(define (polinomio-output pol)(format "hola" (car pol)))
+
 (define (makeNegative mon)
   (cond
     [(equal? (car mon) #f)
@@ -129,10 +133,20 @@
 
 (define (inputAux input) (map (lambda(x) (makeNegative x)) (polinomio-input? input)))
 
+;-----------------------  OUTPUT FUNCTIONS  -----------------------
+
+(define (returnStringMon mon)
+  (string-append (number->string (car mon)) " " (number->string (second mon)) " " (number->string (third mon))))
+
+(define (myOutput pol strFinal)
+  (cond
+    [(empty? pol) strFinal]
+    [else (cond[(empty? (cdr pol)) (myOutput (cdr pol) (string-append strFinal (string-append " " (returnStringMon (car pol)))))]
+               [else (myOutput (cdr pol) (string-append strFinal (string-append " " (returnStringMon (car pol)) " |")))])]))
+
 ;-----------------------  TEST VALUES GIVEN BY THE TEACHER  -----------------------
 
 (OperadorPolynomial "1 2 0 | -2 1 1 | 1 0 2" + "1 2 1 | 1 2 0 | 2 1 1 | -1 0 2" )
 (OperadorPolynomial "1 2 0 | -2 1 1 | 1 0 2" - "1 2 1 | 1 2 0 | 2 1 1 | -1 0 2")
 (OperadorPolynomial "2 1 1 | -2 0 0" * "1 2 0 | -2 1 1 | 1 0 0")
 (Eval "1 2 0 | -2 1 1 | 1 0 0" 3 5)
-
