@@ -40,9 +40,7 @@
 
 (define (negativePol pol) (map (lambda (x) (getNewMonomial (* (getCoef x) -1) (getX x) (getY x))) pol))
 
-(define (OperadorPolynomial pol operador pol2)
-  (cond[(equal? (validate pol) (validate pol2))
-        (myOutput (Operador pol operador pol2) "")][else (writeln "ERROR: Invalid input format, must be a b c | d e f | ... |")]))
+(define (OperadorPolynomial pol operador pol2) (myOutput (Operador pol operador pol2) ""))
 
 (define (Operador pol operador pol2)(operadorPolynomial (inputAux pol) operador (inputAux pol2))) ;Converts inputs to lists in order to operate
 
@@ -158,17 +156,9 @@
     [else (cond[(empty? (cdr pol)) (myOutput (cdr pol) (string-append strFinal (string-append " " (returnStringMon (car pol)))))]
                [else (myOutput (cdr pol) (string-append strFinal (string-append " " (returnStringMon (car pol)) " |")))])]))
 
-;-----------------------  VALIDATED FUNCTIONS  -----------------------
-
-(define (validate pol)
-  (cond[(regexp-match-exact? #rx"-?[0-9] [0-9] [0-9]( \\| -?[0-9] [0-9] [0-9])*" pol) true]
-       [else false]))
-
-
 ;-----------------------  TEST VALUES GIVEN BY THE TEACHER  -----------------------
 
 (OperadorPolynomial "1 2 0 | -2 1 1 | 1 0 2" + "1 2 1 | 1 2 0 | 2 1 1 | -1 0 2" )
 (OperadorPolynomial "1 2 0 | -2 1 1 | 1 0 2" - "1 2 1 | 1 2 0 | 2 1 1 | -1 0 2")
 (OperadorPolynomial "2 1 1 | -2 0 0" * "1 2 0 | -2 1 1 | 1 0 0")
-(validate "1 2 0 | -2 1 1 |1  0 2" )
 (Eval "1 2 0 | -2 1 1 | 1 0 0" 3 5)
